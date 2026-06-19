@@ -22,12 +22,16 @@ skill into the target repo) is the most common mistake.
 | **tool** | Repo conventions / scaffolding. Files the repo should carry (docs, `AGENTS.md` sections, config). | **Inside the target repo** (the user's current project). | Yes — this is the point. |
 | **skill** | An on-demand agent capability: a `SKILL.md` prompt the agent loads when relevant. | **The agent's global skills directory** (`~/.claude/skills/<name>/`; OpenCode reads this too). | **No.** Never write a skill into the target repo. |
 | **agent** | A specialized agent/subagent persona + config. | **The agent's global agent directory** (e.g. `~/.config/opencode/agent/<name>.md`). | No. |
+| **mcp** | An external [Model Context Protocol](https://modelcontextprotocol.io) server the agent talks to (e.g. an npm package run via `npx`). **Not vendored** — install registers a config pointer to the upstream package. | **The agent's global MCP config** (e.g. `~/.config/opencode/opencode.json` under `mcp`). | No. |
 
 Rules of thumb:
 - A **tool** answers "how should this repo be set up?" — it belongs in the repo.
-- A **skill** or **agent** answers "what can the assistant do?" — it belongs in the agent's
-  global config and works across all repos. Installing it once is enough; it does not get
+- A **skill**, **agent**, or **mcp** answers "what can the assistant do?" — it belongs in the
+  agent's global config and works across all repos. Installing it once is enough; it does not get
   reinstalled per project, and it never lands in the target repo.
+- An **mcp** is the one type this toolkit deliberately **does not vendor**: it's an external
+  package (the agent fetches it at runtime), so install only recreates a small config pointer to
+  it. Never copy an MCP server's code into this toolkit.
 
 Each catalog entry below is tagged with its type. Every artifact has its own `INSTALL.md` with
 the exact, type-correct steps — follow it.
@@ -48,13 +52,14 @@ the exact, type-correct steps — follow it.
    a need that matches one, install it. Otherwise leave it out.
 
 4. **For each artifact you install:**
-   - First confirm its **type** (tool / skill / agent) from the catalog. The type decides where
-     it goes — see the Artifact types table above.
+   - First confirm its **type** (tool / skill / agent / mcp) from the catalog. The type decides
+     where it goes — see the Artifact types table above.
    - Read the artifact's `INSTALL.md` (path in the catalog below).
    - Follow its steps. It tells you which files to create and where.
    - Get file contents from the artifact's directory (`templates/` for tools, `SKILL.md` for
      skills). You already have them if you fetched this repo; if not, fetch each from the raw
-     base above.
+     base above. For **mcp** artifacts there's nothing to vendor — INSTALL.md gives you the
+     config block to recreate.
    - Adapt placeholders (dates, repo name, stack) where the INSTALL says to. Skills like
      humanizer are copied **verbatim** — do not edit them.
 
@@ -83,6 +88,7 @@ the exact, type-correct steps — follow it.
 | Tool | Status | What it does | INSTALL |
 |------|--------|--------------|---------|
 | **why-journal** | `DEFAULT` | Captures the *why* behind every change: a daily journal of asks + rationale, plus durable decision records. The user's core requirement — install on every repo. | `tools/why-journal/INSTALL.md` |
+| **workspace-hygiene** | `OPTIONAL` | Keeps the repo tidy *as the agent works*: a root whitelist, a sanctioned gitignored `.scratch/` dir for temp work, file-placement rules, and an anti-cruft `.gitignore` — all carried in `AGENTS.md`. Install on request, or when a repo keeps accumulating stray temp files/clutter. | `tools/workspace-hygiene/INSTALL.md` |
 
 ### Skill catalog (installs into the *agent's* global skills dir — NOT the target repo)
 
@@ -93,6 +99,12 @@ the exact, type-correct steps — follow it.
 ### Agent catalog (installs into the *agent's* global agent dir)
 
 _None yet._ When added, agents install to the agent's global agent directory, not the target repo.
+
+### MCP catalog (installs into the *agent's* global MCP config — NOT the target repo, NOT vendored)
+
+| MCP | Status | What it does | INSTALL |
+|-----|--------|--------------|---------|
+| **playwright** | `OPTIONAL` | Browser automation via the official `@playwright/mcp` server: navigate, click, fill forms, read accessibility snapshots, run e2e checks. Pulled from npm at runtime — not vendored here. Install on request or for browser-heavy repos. | `mcp/playwright/INSTALL.md` |
 
 > More artifacts will be added over time. Anything marked `DEFAULT` installs automatically.
 > Anything `OPTIONAL` installs only on request. **Always install to the location dictated by the
@@ -116,3 +128,10 @@ Then add a row to the **Skill catalog** with its status.
 
 **An agent** — create `agents/<name>/` with a `README.md`, an `INSTALL.md` (installs to the
 agent's global agent dir), and the agent definition file. Then add a row to the **Agent catalog**.
+
+**An mcp** — create `mcp/<name>/` with:
+- `README.md` — what it is, the *why*, when to use it, and a pointer to the upstream package/repo.
+- `INSTALL.md` — steps to add the server to the agent's global MCP config. Must state plainly
+  that it does **not** go into the target repo and is **not** vendored (it's fetched at runtime).
+Do **not** copy the server's code into this toolkit — carry only the config pointer. Then add a
+row to the **MCP catalog** with its status.

@@ -26,6 +26,9 @@ classifies before installing:
 - **skill** — an on-demand agent capability (`SKILL.md`). Installed into the *agent's* global
   skills directory, available across all repos. Never written into the target repo (e.g. humanizer).
 - **agent** — a specialized agent/subagent persona. Installed into the agent's global agent dir.
+- **mcp** — an external Model Context Protocol server the agent talks to (e.g. playwright).
+  Installed as a config pointer in the agent's global MCP config; **not vendored** here and never
+  written into the target repo.
 
 This is why I can say "set up this repo" (tools land in the repo) and "use the humanizer" (the
 skill installs to the agent and works everywhere) and the agent knows the difference.
@@ -49,6 +52,23 @@ It sets up two layers in the target repo:
 The protocol is written into the target repo's `AGENTS.md`, which nearly every agent reads
 automatically — so every agent run is reminded to log its reasoning.
 
+### workspace-hygiene (optional tool)
+Keeps a repo tidy **as the agent works**, instead of cleaning up after. AI sessions leave residue:
+temp scripts in the root, debug output in source dirs, `.DS_Store` files in commits, throwaway
+experiments nobody remembers. It compounds until the repo is a junk drawer.
+
+It installs four conventions, carried in the target repo's `AGENTS.md` so every agent follows
+them on every run:
+- **Root whitelist** — the root is for config and entry points only; anything else is a violation.
+- **A sanctioned `.scratch/` dir** — hidden and gitignored, the one blessed place for temp scripts,
+  debug output, and experiments, so working files never land in the root.
+- **File-placement rules** — source in the source tree, tests in the test dir, docs in `docs/`.
+- **Clean up before done** — agents sweep their own scratch artifacts at the end of a task.
+
+Plus an anti-cruft `.gitignore` block (`.DS_Store`, `*.tmp`, `*.bak`, editor swap files, the
+scratch dir) so residue never reaches a commit. It's a **tool**, so it installs *into the target
+repo*. It's `OPTIONAL` — install it on request, or when a repo keeps accumulating clutter.
+
 ### humanizer (default skill)
 A skill that strips signs of AI-generated writing from text — em dashes, rule-of-three lists,
 significance inflation, filler phrases, sycophantic openers, and 29 other patterns. Vendored
@@ -59,6 +79,18 @@ Because it's a **skill**, it installs into the agent's global skills directory
 installed it's available everywhere — invoke it for any writing or editing task ("humanize this
 text", or `/humanizer`).
 
+### playwright (optional MCP server)
+Browser automation via the official [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp)
+server — navigate pages, click, fill forms, read accessibility snapshots, run e2e checks. Useful
+for front-end work, e2e tests, or scraping.
+
+Because it's an **mcp**, it's neither vendored nor written into the target repo. Install just adds
+a `playwright` entry to the agent's global MCP config (for OpenCode,
+`~/.config/opencode/opencode.json`) that points at the npm package; `npx` fetches it on first run
+(needs Node 18+). It's `OPTIONAL` — install it on request or for browser-heavy repos. For
+token-heavy sessions, Microsoft's lighter
+[Playwright CLI+SKILLS](https://github.com/microsoft/playwright-cli) is an alternative.
+
 ## Layout
 
 ```
@@ -67,16 +99,24 @@ ai-toolkit/
 ├── README.md                  # this file
 ├── setup.sh                   # optional curl-based installer (no clone)
 ├── tools/                     # TOOLS — installed inside the target repo
-│   └── why-journal/
+│   ├── why-journal/
+│   │   ├── README.md          # what it is + the why behind it
+│   │   ├── INSTALL.md         # steps an agent follows to install it
+│   │   └── templates/         # files the agent recreates in the target repo
+│   └── workspace-hygiene/
 │       ├── README.md          # what it is + the why behind it
 │       ├── INSTALL.md         # steps an agent follows to install it
-│       └── templates/         # files the agent recreates in the target repo
+│       └── templates/         # AGENTS.md protocol, hygiene + scratch readmes, gitignore block
 ├── skills/                    # SKILLS — installed into the agent's global skills dir
 │   └── humanizer/
 │       ├── SKILL.md           # the skill itself (vendored verbatim from upstream)
 │       ├── README.md          # what it is, the why, when to use it, provenance
 │       ├── INSTALL.md         # steps to install it into ~/.claude/skills/
 │       └── LICENSE            # upstream MIT license
+├── mcp/                        # MCP SERVERS — config pointers, not vendored
+│   └── playwright/
+│       ├── README.md          # what it is, the why, when to use it, upstream pointer
+│       └── INSTALL.md          # steps to add it to the agent's global MCP config
 └── .opencode/
     └── skill/
         └── setup-ai-repo/
@@ -89,5 +129,8 @@ ai-toolkit/
   directory, then register it in the **Tool catalog** in `TOOLKIT.md`.
 - **Add a skill:** create `skills/<name>/` with a `SKILL.md`, a `README.md`, an `INSTALL.md`
   (and a `LICENSE` if vendored), then register it in the **Skill catalog** in `TOOLKIT.md`.
+- **Add an mcp:** create `mcp/<name>/` with a `README.md` and an `INSTALL.md` (carry only the
+  config pointer — never vendor the server), then register it in the **MCP catalog** in
+  `TOOLKIT.md`.
 
 Mark anything `DEFAULT` to install everywhere or `OPTIONAL` to install on request.
