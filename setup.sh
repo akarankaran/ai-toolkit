@@ -8,7 +8,9 @@
 # Usage (run from inside your target repo):
 #   curl -fsSL https://raw.githubusercontent.com/akarankaran/ai-toolkit/main/setup.sh | bash
 #
-# It installs every DEFAULT tool. Right now that's: why-journal.
+# It installs every DEFAULT artifact:
+#   - tools  (installed inside this repo):        why-journal
+#   - skills (installed in your agent skills dir): humanizer
 
 set -euo pipefail
 
@@ -33,9 +35,10 @@ say "Installing why-journal"
 
 mkdir -p docs/why/journal docs/why/decisions
 
-# README + decisions README (copied as-is)
+# README + decisions README + search guide (copied as-is)
 fetch "tools/why-journal/templates/why-readme.md" > docs/why/README.md
 fetch "tools/why-journal/templates/decisions-readme.md" > docs/why/decisions/README.md
+fetch "tools/why-journal/templates/search-guide.md" > docs/why/SEARCH.md
 
 # Seed decision record 0001
 SEED_DECISION="docs/why/decisions/0001-record-architecture-decisions.md"
@@ -45,6 +48,8 @@ if [ ! -f "$SEED_DECISION" ]; then
 
 - **Status:** Accepted
 - **Date:** ${TODAY}
+- **Tags:** meta
+- **Touches:** docs/why/decisions
 
 ## Context
 
@@ -87,9 +92,17 @@ if [ ! -f "$JOURNAL" ]; then
 - **Changed:** docs/why/**, AGENTS.md
 - **Why:** Establish why-tracking from day one so the reasoning behind every change is captured
   as work happens, not reconstructed later.
+- **Tags:** meta
+- **Touches:** docs/why, AGENTS.md
 - **Decision:** [../decisions/0001-record-architecture-decisions.md](../decisions/0001-record-architecture-decisions.md)
 - **Agent:** setup.sh
 EOF
+fi
+
+# Seed the index
+INDEX="docs/why/INDEX.md"
+if [ ! -f "$INDEX" ]; then
+  fetch "tools/why-journal/templates/index.md" > "$INDEX"
 fi
 
 # Inject protocol into AGENTS.md
@@ -107,5 +120,37 @@ else
 fi
 
 say "Done. why-journal installed."
-say "  - docs/why/ created (journal + decisions)"
-say "  - AGENTS.md updated with the Why-Journal Protocol"
+say "  - docs/why/ created (journal + decisions + SEARCH.md + INDEX.md)"
+say "  - AGENTS.md updated with the Why-Journal Protocol (read-first loop)"
+
+# ---- humanizer (DEFAULT skill — installs to the agent's GLOBAL skills dir) -
+# Skills are agent capabilities, not repo files. This never writes into the target repo.
+SKILLS_DIR="${HOME}/.claude/skills/humanizer"
+say "Installing humanizer skill (global, not in this repo)"
+if [ -f "$SKILLS_DIR/SKILL.md" ]; then
+  warn "humanizer already installed at $SKILLS_DIR; leaving it as-is."
+else
+  mkdir -p "$SKILLS_DIR"
+  fetch "skills/humanizer/SKILL.md" > "$SKILLS_DIR/SKILL.md"
+  fetch "skills/humanizer/LICENSE" > "$SKILLS_DIR/LICENSE"
+  say "  - humanizer installed at $SKILLS_DIR (available in every repo)"
+fi
+
+# ---- humanizer (DEFAULT, skill) --------------------------------------------
+# Skills are agent capabilities, not repo files. humanizer installs into the
+# agent's global skills directory, NOT into this repo. ~/.claude/skills/ is read
+# by both Claude Code and OpenCode.
+say "Installing humanizer skill"
+
+SKILL_DIR="${HOME}/.claude/skills/humanizer"
+if [ -f "${SKILL_DIR}/SKILL.md" ]; then
+  warn "humanizer already installed at ${SKILL_DIR}/SKILL.md; leaving it as-is."
+else
+  mkdir -p "$SKILL_DIR"
+  fetch "skills/humanizer/SKILL.md" > "${SKILL_DIR}/SKILL.md"
+  fetch "skills/humanizer/LICENSE" > "${SKILL_DIR}/LICENSE" 2>/dev/null || true
+  say "  - humanizer installed at ${SKILL_DIR}/SKILL.md (global; not in this repo)"
+  say "  - use it for any writing task: ask to \"humanize this text\" or run /humanizer"
+fi
+
+say "All DEFAULT artifacts installed."

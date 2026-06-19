@@ -18,6 +18,11 @@ Use the contents of `templates/why-readme.md`. No placeholders to fill — copy 
 
 Use the contents of `templates/decisions-readme.md`. Copy as-is.
 
+## Step 3b — Create `docs/why/SEARCH.md`
+
+Use the contents of `templates/search-guide.md`. Copy as-is. This is the in-repo cheat-sheet for
+searching the why (ripgrep recipes, the `Tags`/`Touches` conventions).
+
 ## Step 4 — Seed the first decision record
 
 Create `docs/why/decisions/0001-record-architecture-decisions.md` from
@@ -47,8 +52,19 @@ setup, so the journal starts with a real example:
 - Changed: `docs/why/**`, `AGENTS.md`.
 - Why: "Establish why-tracking from day one so the reasoning behind every change is captured
   as work happens, not reconstructed later."
+- Tags: `meta`.
+- Touches: `docs/why`, `AGENTS.md`.
 - Decision: link to `../decisions/0001-record-architecture-decisions.md`.
 - Agent: the agent/model doing the setup, if known.
+
+Use `templates/journal-entry.md` for the field shape — note it now includes `Tags` and
+`Touches`.
+
+## Step 5b — Create `docs/why/INDEX.md`
+
+Use the contents of `templates/index.md`. It comes pre-seeded with the `meta` topic, the
+`docs/why` entity, and decision `0001`, matching what this setup creates — copy as-is. From here
+on, every journal entry or decision must also refresh this index.
 
 ## Step 6 — Inject the protocol into `AGENTS.md`
 
@@ -66,13 +82,18 @@ Use the exact contents of `templates/agents-protocol.md` for the protocol block.
 
 Tell the user:
 - why-journal is installed.
-- Files created: `docs/why/README.md`, `docs/why/decisions/README.md`,
+- Files created: `docs/why/README.md`, `docs/why/SEARCH.md`, `docs/why/INDEX.md`,
+  `docs/why/decisions/README.md`,
   `docs/why/decisions/0001-record-architecture-decisions.md`,
   `docs/why/journal/<today>.md`, and the protocol section in `AGENTS.md`.
-- One line on how it works: every change should get a journal entry; significant choices get a
-  decision record.
+- One line on how it works: agents search `docs/why/` before changing code, then log a journal
+  entry (with `Tags`/`Touches`) and update `INDEX.md`; significant choices get a decision record.
 
 ## Idempotency notes
 - Re-running setup must not duplicate files or `AGENTS.md` sections.
 - Never delete existing journal entries or decision records.
 - If today's journal file already exists, append a new entry rather than recreating the file.
+- `docs/why/INDEX.md` is agent-maintained: merge new rows into it, never clobber it. If it
+  already exists, leave existing rows intact.
+- `docs/why/README.md` and `docs/why/SEARCH.md` may be overwritten with the latest template only
+  if unchanged; otherwise leave the user's edits in place.

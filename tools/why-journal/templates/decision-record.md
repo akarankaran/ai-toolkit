@@ -2,6 +2,8 @@
 
 - **Status:** <Proposed | Accepted | Superseded by NNNN | Deprecated>
 - **Date:** <YYYY-MM-DD>
+- **Tags:** <comma-separated topics, e.g. auth, billing, perf>
+- **Touches:** <comma-separated entities, e.g. users.email, env/STRIPE_KEY, deps/stripe>
 
 ## Context
 
