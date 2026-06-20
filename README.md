@@ -29,7 +29,7 @@ classifies before installing:
 - **agent** — a specialized agent/subagent persona (prompt + frontmatter). Installed
   *repo-scoped*, into the host tool's project-local agent dir (e.g. `.opencode/agent/`,
   `.claude/agents/`) so it travels with the repo. Cross-tool, not laptop-wide (e.g. git-agent).
-- **mcp** — an external Model Context Protocol server the agent talks to (e.g. playwright).
+- **mcp** — an external Model Context Protocol server the agent talks to (e.g. agent-browser).
   Installed as a config pointer in the agent's global MCP config; **not vendored** here and never
   written into the target repo.
 
@@ -98,17 +98,19 @@ dir — `.opencode/agent/git-agent.md` for OpenCode, `.claude/agents/git-agent.m
 Code, a repo-local prompt file for others. It's cross-tool and never installed laptop-wide.
 It's `DEFAULT` — installed on every repo setup. Invoke it with `@git-agent`.
 
-### playwright (optional MCP server)
-Browser automation via the official [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp)
-server — navigate pages, click, fill forms, read accessibility snapshots, run e2e checks. Useful
-for front-end work, e2e tests, or scraping.
+### agent-browser (optional MCP server)
+Browser automation via [`agent-browser`](https://github.com/vercel-labs/agent-browser), a fast
+native (Rust) browser-automation CLI for AI agents with a built-in MCP server — navigate pages,
+click, fill forms, read accessibility snapshots, run e2e checks. Useful for front-end work, e2e
+tests, or scraping.
 
 Because it's an **mcp**, it's neither vendored nor written into the target repo. Install just adds
-a `playwright` entry to the agent's global MCP config (for OpenCode,
-`~/.config/opencode/opencode.json`) that points at the npm package; `npx` fetches it on first run
-(needs Node 18+). It's `OPTIONAL` — install it on request or for browser-heavy repos. For
-token-heavy sessions, Microsoft's lighter
-[Playwright CLI+SKILLS](https://github.com/microsoft/playwright-cli) is an alternative.
+an `agent-browser` entry to the agent's global MCP config (for OpenCode,
+`~/.config/opencode/opencode.json`) that points at the locally-installed binary via
+`agent-browser mcp`. Install the binary once with npm/Homebrew/Cargo, then `agent-browser install`
+to fetch Chrome. It's `OPTIONAL` — install it on request or for browser-heavy repos. The MCP
+server defaults to a lean `core` tools profile to keep context small; widen it with `--tools` only
+when a task needs more.
 
 ## Layout
 
@@ -138,7 +140,7 @@ ai-toolkit/
 │       ├── README.md          # what it is, the why, when to use it
 │       └── INSTALL.md         # repo-scoped, cross-tool install steps
 ├── mcp/                        # MCP SERVERS — config pointers, not vendored
-│   └── playwright/
+│   └── agent-browser/
 │       ├── README.md          # what it is, the why, when to use it, upstream pointer
 │       └── INSTALL.md          # steps to add it to the agent's global MCP config
 └── .opencode/

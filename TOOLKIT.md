@@ -116,7 +116,7 @@ the exact, type-correct steps — follow it.
 
 | MCP | Status | What it does | INSTALL |
 |-----|--------|--------------|---------|
-| **playwright** | `OPTIONAL` | Browser automation via the official `@playwright/mcp` server: navigate, click, fill forms, read accessibility snapshots, run e2e checks. Pulled from npm at runtime — not vendored here. Install on request or for browser-heavy repos. | `mcp/playwright/INSTALL.md` |
+| **agent-browser** | `OPTIONAL` | Browser automation via the native `agent-browser` CLI's MCP server (vercel-labs/agent-browser): navigate, click, fill forms, read accessibility snapshots, run e2e checks. Talks to a locally-installed binary — not vendored here. Defaults to a lean `core` tools profile. Install on request or for browser-heavy repos. | `mcp/agent-browser/INSTALL.md` |
 
 > More artifacts will be added over time. Anything marked `DEFAULT` installs automatically.
 > Anything `OPTIONAL` installs only on request. **Always install to the location dictated by the

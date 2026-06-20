@@ -24,7 +24,7 @@ toolkit to the **current repo** (the target).
    - Install every artifact marked `DEFAULT` (currently: **why-journal** tool, **humanizer**
      skill) without asking.
    - Install `OPTIONAL` artifacts only if the user named one or described a matching need (e.g.
-     **playwright** MCP for browser work).
+     **agent-browser** MCP for browser work).
    - Classify each artifact first (tool / skill / agent / mcp) — the type decides where inside the
      target repo it installs. Every artifact installs *inside the target repo only*; never touch
      the machine-wide / global agent config.

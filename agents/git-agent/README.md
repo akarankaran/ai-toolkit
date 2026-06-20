@@ -10,7 +10,7 @@ permissions. It differs from the other artifact types in this toolkit:
 
 - A **tool** (why-journal) is repo scaffolding the agent recreates *inside the target repo*.
 - A **skill** (humanizer) is a `SKILL.md` capability loaded on demand.
-- An **mcp** (playwright) is a config pointer to an external server.
+- An **mcp** (agent-browser) is a config pointer to an external server.
 - An **agent** (this) is a persona definition — a markdown file with frontmatter (mode,
   permissions) and a system prompt — that the host agent tool loads as an invokable subagent.
 
