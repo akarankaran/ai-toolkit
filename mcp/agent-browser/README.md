@@ -58,3 +58,10 @@ even the lean `core` profile adds tools (and tokens) to the agent's context.
 Nothing in the target repo. The agent adds an `agent-browser` entry under `mcp` in the agent's
 global config (for OpenCode, `~/.config/opencode/opencode.json`). See [`INSTALL.md`](./INSTALL.md)
 for the exact steps and the per-client variations.
+
+## Pairs with the agent-browser skill
+
+This toolkit also ships an **agent-browser skill** (`skills/agent-browser/`). The mcp exposes the
+tool surface; the skill teaches the agent the workflows and steers it to prefer agent-browser over
+built-in browser tools. They install independently — use either or both. For browser-heavy work,
+install both.

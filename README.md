@@ -98,19 +98,28 @@ dir — `.opencode/agent/git-agent.md` for OpenCode, `.claude/agents/git-agent.m
 Code, a repo-local prompt file for others. It's cross-tool and never installed laptop-wide.
 It's `DEFAULT` — installed on every repo setup. Invoke it with `@git-agent`.
 
-### agent-browser (optional MCP server)
+### agent-browser (optional MCP server + skill)
 Browser automation via [`agent-browser`](https://github.com/vercel-labs/agent-browser), a fast
 native (Rust) browser-automation CLI for AI agents with a built-in MCP server — navigate pages,
 click, fill forms, read accessibility snapshots, run e2e checks. Useful for front-end work, e2e
 tests, or scraping.
 
-Because it's an **mcp**, it's neither vendored nor written into the target repo. Install just adds
-an `agent-browser` entry to the agent's global MCP config (for OpenCode,
-`~/.config/opencode/opencode.json`) that points at the locally-installed binary via
-`agent-browser mcp`. Install the binary once with npm/Homebrew/Cargo, then `agent-browser install`
-to fetch Chrome. It's `OPTIONAL` — install it on request or for browser-heavy repos. The MCP
-server defaults to a lean `core` tools profile to keep context small; widen it with `--tools` only
-when a task needs more.
+It ships as two complementary artifacts:
+
+- An **mcp** — neither vendored nor written into the target repo. Install adds an `agent-browser`
+  entry to the agent's global MCP config (for OpenCode, `~/.config/opencode/opencode.json`) that
+  points at the locally-installed binary via `agent-browser mcp`. Install the binary once with
+  npm/Homebrew/Cargo, then `agent-browser install` to fetch Chrome. The MCP server defaults to a
+  lean `core` tools profile to keep context small; widen it with `--tools` only when a task needs
+  more.
+- A **skill** — a discovery stub that steers the agent to use agent-browser over built-in browser
+  tools (trigger words like "open a website", "fill a form", "scrape a page", "test this web
+  app"), then points it at `agent-browser skills get core` for current, version-matched workflows.
+  Like all skills it installs into the agent's global skills dir, not the target repo. Vendored
+  verbatim from upstream (Apache-2.0).
+
+Both are `OPTIONAL` — install on request or for browser-heavy repos. They're independent; install
+either or both. The mcp exposes the tool surface, the skill teaches the workflows.
 
 ## Layout
 
@@ -129,11 +138,16 @@ ai-toolkit/
 │       ├── INSTALL.md         # steps an agent follows to install it
 │       └── templates/         # AGENTS.md protocol, hygiene + scratch readmes, gitignore block
 ├── skills/                    # SKILLS — installed into the agent's global skills dir
-│   └── humanizer/
-│       ├── SKILL.md           # the skill itself (vendored verbatim from upstream)
+│   ├── humanizer/
+│   │   ├── SKILL.md           # the skill itself (vendored verbatim from upstream)
+│   │   ├── README.md          # what it is, the why, when to use it, provenance
+│   │   ├── INSTALL.md         # steps to install it into ~/.claude/skills/
+│   │   └── LICENSE            # upstream MIT license
+│   └── agent-browser/
+│       ├── SKILL.md           # discovery stub (vendored verbatim from upstream)
 │       ├── README.md          # what it is, the why, when to use it, provenance
 │       ├── INSTALL.md         # steps to install it into ~/.claude/skills/
-│       └── LICENSE            # upstream MIT license
+│       └── LICENSE            # upstream Apache-2.0 license
 ├── agents/                    # AGENTS — installed repo-scoped, host tool's project-local dir
 │   └── git-agent/
 │       ├── git-agent.md       # the agent definition (prompt + frontmatter)

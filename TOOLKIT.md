@@ -105,6 +105,7 @@ the exact, type-correct steps — follow it.
 | Skill | Status | What it does | INSTALL |
 |-------|--------|--------------|---------|
 | **humanizer** | `DEFAULT` | Removes signs of AI-generated writing from text (33 patterns: em dashes, rule-of-three, significance inflation, filler, etc.). Use for any writing/editing task. Vendored from blader/humanizer (MIT). | `skills/humanizer/INSTALL.md` |
+| **agent-browser** | `OPTIONAL` | Teaches the agent to drive the `agent-browser` CLI for browser automation: trigger words steer it to agent-browser over built-in tools, then point it at `agent-browser skills get core` for current, version-matched workflows. Pairs with the agent-browser mcp. Vendored from vercel-labs/agent-browser (Apache-2.0). | `skills/agent-browser/INSTALL.md` |
 
 ### Agent catalog (installs *repo-scoped*, into the host tool's project-local agent dir)
 
