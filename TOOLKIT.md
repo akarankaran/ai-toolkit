@@ -21,14 +21,18 @@ skill into the target repo) is the most common mistake.
 |------|------------|-------------|--------------------------|
 | **tool** | Repo conventions / scaffolding. Files the repo should carry (docs, `AGENTS.md` sections, config). | **Inside the target repo** (the user's current project). | Yes — this is the point. |
 | **skill** | An on-demand agent capability: a `SKILL.md` prompt the agent loads when relevant. | **The agent's global skills directory** (`~/.claude/skills/<name>/`; OpenCode reads this too). | **No.** Never write a skill into the target repo. |
-| **agent** | A specialized agent/subagent persona + config. | **The agent's global agent directory** (e.g. `~/.config/opencode/agent/<name>.md`). | No. |
+| **agent** | A specialized agent/subagent persona + config (prompt + frontmatter). | **Inside the target repo**, in the host tool's *project-local* agent dir (e.g. `.opencode/agent/<name>.md`, `.claude/agents/<name>.md`). Repo-scoped and cross-tool — **not** the laptop-wide global dir. | Yes — repo-scoped. |
 | **mcp** | An external [Model Context Protocol](https://modelcontextprotocol.io) server the agent talks to (e.g. an npm package run via `npx`). **Not vendored** — install registers a config pointer to the upstream package. | **The agent's global MCP config** (e.g. `~/.config/opencode/opencode.json` under `mcp`). | No. |
 
 Rules of thumb:
 - A **tool** answers "how should this repo be set up?" — it belongs in the repo.
-- A **skill**, **agent**, or **mcp** answers "what can the assistant do?" — it belongs in the
-  agent's global config and works across all repos. Installing it once is enough; it does not get
+- A **skill** or **mcp** answers "what can the assistant do?" — it belongs in the agent's
+  global config and works across all repos. Installing it once is enough; it does not get
   reinstalled per project, and it never lands in the target repo.
+- An **agent** also answers "what can the assistant do?", but in this toolkit agents install
+  **repo-scoped**, into the host tool's project-local agent dir (e.g. `.opencode/agent/`,
+  `.claude/agents/`) so they travel with the repo. Cross-tool, not opencode-only, and never the
+  laptop-wide global dir.
 - An **mcp** is the one type this toolkit deliberately **does not vendor**: it's an external
   package (the agent fetches it at runtime), so install only recreates a small config pointer to
   it. Never copy an MCP server's code into this toolkit.
@@ -43,27 +47,31 @@ the exact, type-correct steps — follow it.
 1. **Confirm the target.** The target repo is the user's current working directory, unless
    they say otherwise. Never write toolkit files into this toolkit repo itself.
 
-2. **Install all DEFAULT artifacts.** Every entry in the catalogs marked `DEFAULT` must be
+2. **Initialize Git when needed.** If the target project is not already a Git repo, run
+   `git init` before installing artifacts. If it is already a Git repo, leave its Git setup as-is.
+
+3. **Install all DEFAULT artifacts.** Every entry in the catalogs marked `DEFAULT` must be
    installed on every setup, without being asked. These are the user's non-negotiable baseline.
    This applies to skills too: ensure DEFAULT skills are present in the agent's global skills
-   directory (idempotent — skip if already installed).
+   directory (idempotent — skip if already installed). DEFAULT agents install **repo-scoped**
+   into the host tool's project-local agent dir (idempotent — skip if already installed).
 
-3. **Install OPTIONAL artifacts only when asked.** If the user named a specific one, or described
+4. **Install OPTIONAL artifacts only when asked.** If the user named a specific one, or described
    a need that matches one, install it. Otherwise leave it out.
 
-4. **For each artifact you install:**
+5. **For each artifact you install:**
    - First confirm its **type** (tool / skill / agent / mcp) from the catalog. The type decides
      where it goes — see the Artifact types table above.
    - Read the artifact's `INSTALL.md` (path in the catalog below).
    - Follow its steps. It tells you which files to create and where.
    - Get file contents from the artifact's directory (`templates/` for tools, `SKILL.md` for
-     skills). You already have them if you fetched this repo; if not, fetch each from the raw
-     base above. For **mcp** artifacts there's nothing to vendor — INSTALL.md gives you the
-     config block to recreate.
+     skills, the agent definition file for agents). You already have them if you fetched this
+     repo; if not, fetch each from the raw base above. For **mcp** artifacts there's nothing to
+     vendor — INSTALL.md gives you the config block to recreate.
    - Adapt placeholders (dates, repo name, stack) where the INSTALL says to. Skills like
      humanizer are copied **verbatim** — do not edit them.
 
-5. **Report back.** Tell the user which artifacts you installed, their types, which files you
+6. **Report back.** Tell the user which artifacts you installed, their types, which files you
    created or modified (and where — repo vs. global skills dir), and how to use them in one or
    two lines.
 
@@ -73,8 +81,10 @@ the exact, type-correct steps — follow it.
 - **Stack-agnostic.** This toolkit assumes nothing about the target's language or framework.
   Do not add language-specific tooling unless an INSTALL.md says to, or the user asks.
 - **Idempotent.** If a file already exists, merge rather than clobber. For `AGENTS.md`, append or
-  update the relevant section; never overwrite the whole file. For skills, skip if already
-  installed.
+  update the relevant section; never overwrite the whole file. For skills and agents, skip if
+  already installed.
+- **Git initialized.** Every new target project should be a Git repo. Run `git init` only when the
+  target is not already inside a Git worktree.
 - **No clone.** Do not `git clone` this toolkit or any upstream source. Recreate files from what
   this toolkit carries.
 - **Minimal footprint.** Only create what the catalogs and INSTALL files specify.
@@ -96,9 +106,11 @@ the exact, type-correct steps — follow it.
 |-------|--------|--------------|---------|
 | **humanizer** | `DEFAULT` | Removes signs of AI-generated writing from text (33 patterns: em dashes, rule-of-three, significance inflation, filler, etc.). Use for any writing/editing task. Vendored from blader/humanizer (MIT). | `skills/humanizer/INSTALL.md` |
 
-### Agent catalog (installs into the *agent's* global agent dir)
+### Agent catalog (installs *repo-scoped*, into the host tool's project-local agent dir)
 
-_None yet._ When added, agents install to the agent's global agent directory, not the target repo.
+| Agent | Status | What it does | INSTALL |
+|-------|--------|--------------|---------|
+| **git-agent** | `DEFAULT` | Summarizes git changes in two registers at once: a plain-language headline anyone can follow, plus precise technical detail (files, mechanism, Conventional Commits type, breaking changes, verify step) with nothing dropped. Read-only — for commit messages, PR descriptions, and "what changed" updates. The *what* companion to why-journal's *why*. | `agents/git-agent/INSTALL.md` |
 
 ### MCP catalog (installs into the *agent's* global MCP config — NOT the target repo, NOT vendored)
 
@@ -126,8 +138,10 @@ Then add a row to the **Tool catalog** with its status.
 - `LICENSE` — if vendored from a licensed upstream, carry the license.
 Then add a row to the **Skill catalog** with its status.
 
-**An agent** — create `agents/<name>/` with a `README.md`, an `INSTALL.md` (installs to the
-agent's global agent dir), and the agent definition file. Then add a row to the **Agent catalog**.
+**An agent** — create `agents/<name>/` with a `README.md`, an `INSTALL.md` (installs
+**repo-scoped**, into the host tool's project-local agent dir — cross-tool, not the laptop-wide
+global dir), and the agent definition file (prompt + frontmatter). Then add a row to the
+**Agent catalog**.
 
 **An mcp** — create `mcp/<name>/` with:
 - `README.md` — what it is, the *why*, when to use it, and a pointer to the upstream package/repo.

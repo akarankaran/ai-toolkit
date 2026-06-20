@@ -16,6 +16,7 @@ Point any agent (OpenCode, Claude Code, Cursor, Codex, Gemini, etc.) at this rep
 
 The agent installs every `DEFAULT` artifact automatically and any `OPTIONAL` one I name.
 Nothing gets cloned — the agent reads what's here and recreates it in the right place.
+If the target project is not already a Git repo, the agent initializes it with `git init` first.
 
 ### Artifact types
 
@@ -25,7 +26,9 @@ classifies before installing:
 - **tool** — repo conventions/scaffolding. Recreated *inside the target repo* (e.g. why-journal).
 - **skill** — an on-demand agent capability (`SKILL.md`). Installed into the *agent's* global
   skills directory, available across all repos. Never written into the target repo (e.g. humanizer).
-- **agent** — a specialized agent/subagent persona. Installed into the agent's global agent dir.
+- **agent** — a specialized agent/subagent persona (prompt + frontmatter). Installed
+  *repo-scoped*, into the host tool's project-local agent dir (e.g. `.opencode/agent/`,
+  `.claude/agents/`) so it travels with the repo. Cross-tool, not laptop-wide (e.g. git-agent).
 - **mcp** — an external Model Context Protocol server the agent talks to (e.g. playwright).
   Installed as a config pointer in the agent's global MCP config; **not vendored** here and never
   written into the target repo.
@@ -79,6 +82,22 @@ Because it's a **skill**, it installs into the agent's global skills directory
 installed it's available everywhere — invoke it for any writing or editing task ("humanize this
 text", or `/humanizer`).
 
+### git-agent (default agent)
+A subagent that summarizes git changes in **two registers at once**: a plain-language headline
+anyone can follow, and precise technical detail underneath — files and modules touched, the
+mechanism, a Conventional Commits type, breaking changes, and how to verify. Nothing technical
+gets dropped; the headline just makes it readable to a non-technical person first. Short and
+articulated, bottom-line-up-front.
+
+It's the **what** companion to why-journal's **why**: why-journal records the reasoning,
+git-agent describes the change. Read-only — it produces text for commit messages, PR
+descriptions, or "what changed" status updates; it never commits or pushes.
+
+Because it's an **agent**, it installs **repo-scoped** into the host tool's project-local agent
+dir — `.opencode/agent/git-agent.md` for OpenCode, `.claude/agents/git-agent.md` for Claude
+Code, a repo-local prompt file for others. It's cross-tool and never installed laptop-wide.
+It's `DEFAULT` — installed on every repo setup. Invoke it with `@git-agent`.
+
 ### playwright (optional MCP server)
 Browser automation via the official [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp)
 server — navigate pages, click, fill forms, read accessibility snapshots, run e2e checks. Useful
@@ -113,6 +132,11 @@ ai-toolkit/
 │       ├── README.md          # what it is, the why, when to use it, provenance
 │       ├── INSTALL.md         # steps to install it into ~/.claude/skills/
 │       └── LICENSE            # upstream MIT license
+├── agents/                    # AGENTS — installed repo-scoped, host tool's project-local dir
+│   └── git-agent/
+│       ├── git-agent.md       # the agent definition (prompt + frontmatter)
+│       ├── README.md          # what it is, the why, when to use it
+│       └── INSTALL.md         # repo-scoped, cross-tool install steps
 ├── mcp/                        # MCP SERVERS — config pointers, not vendored
 │   └── playwright/
 │       ├── README.md          # what it is, the why, when to use it, upstream pointer
@@ -132,5 +156,8 @@ ai-toolkit/
 - **Add an mcp:** create `mcp/<name>/` with a `README.md` and an `INSTALL.md` (carry only the
   config pointer — never vendor the server), then register it in the **MCP catalog** in
   `TOOLKIT.md`.
+- **Add an agent:** create `agents/<name>/` with the agent definition file (prompt +
+  frontmatter), a `README.md`, and an `INSTALL.md` (installs repo-scoped into the host tool's
+  project-local agent dir), then register it in the **Agent catalog** in `TOOLKIT.md`.
 
 Mark anything `DEFAULT` to install everywhere or `OPTIONAL` to install on request.
